@@ -13,15 +13,15 @@ func main() {
 	staticHandler := httpserver.CreateStaticHandler(*dir)
 	router := httpserver.CreateRouter()
 
-	router.AddRoute("GET", "/web", staticHandler)
-	router.AddRoute("GET", "/api", ApiHandler{})
+	router.GET("/web", staticHandler)
+	router.GET("/api", ApiHandler{})
 	server := httpserver.CreateServer(*port, router)
 	server.StartServer()
 }
 
 type ApiHandler struct{}
 
-func (h ApiHandler) Handle(request httpserver.HttpRequest) (httpserver.HttpResponse, error) {
+func (h ApiHandler) Handle(httpserver.HttpRequest) (httpserver.HttpResponse, error) {
 	var response httpserver.HttpResponse
 	response.StatusCode = 200
 	response.ContentType = "application/json"
