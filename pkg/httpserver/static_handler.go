@@ -1,8 +1,20 @@
 package httpserver
 
-import "os"
+import (
+	"os"
+)
 
-func HandleStatic(request HttpRequest, staticDir string) HttpResponse {
+type StaticHandler struct {
+	StaticDir string
+}
+
+func CreateStaticHandler(dir string) StaticHandler {
+	return StaticHandler{
+		StaticDir: dir,
+	}
+}
+
+func (h StaticHandler) handle(request HttpRequest) (HttpResponse, error) {
 	var httpResponse HttpResponse
 
 	var requestedPath string
@@ -12,7 +24,7 @@ func HandleStatic(request HttpRequest, staticDir string) HttpResponse {
 		requestedPath = request.url
 	}
 
-	file, err := readFile(staticDir + requestedPath)
+	file, err := readFile(h.StaticDir + requestedPath)
 	if err != nil {
 		httpResponse.statusCode = 404
 	} else {
@@ -21,7 +33,7 @@ func HandleStatic(request HttpRequest, staticDir string) HttpResponse {
 		httpResponse.body = file
 	}
 
-	return httpResponse
+	return httpResponse, nil
 }
 
 func readFile(filePath string) (string, error) {

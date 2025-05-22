@@ -13,7 +13,7 @@ type HttpRequest struct {
 	body     []byte
 }
 
-func ParseHttp(b []byte) (HttpRequest, error) {
+func ParseHttpRequest(b []byte) (HttpRequest, error) {
 	var httpRequest HttpRequest
 
 	separator := []byte("\r\n\r\n")

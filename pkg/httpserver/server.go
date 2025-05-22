@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -15,12 +16,14 @@ type Config struct {
 type Server struct {
 	Port      int
 	StaticDir string
+	Router    *Router
 }
 
-func CreateServer(config Config) *Server {
+func CreateServer(config Config, router *Router) *Server {
 	return &Server{
 		Port:      config.Port,
 		StaticDir: config.StaticDir,
+		Router:    router,
 	}
 }
 
@@ -56,16 +59,22 @@ func (s *Server) handleConnection(conn net.Conn) {
 		return
 	}
 
-	request, err := ParseHttp(buf)
+	request, err := ParseHttpRequest(buf)
 	if err != nil {
 		log.Printf("Cannot parse HttpRequest %s", err)
 		return
 	}
 
-	// TODO implement support for multiple Handlers/Routing
-	response := HandleStatic(request, s.StaticDir)
+	route := s.Router.selectRoute(request.method, request.url)
+	originalUrl := request.url
+	request.url = rewriteUrl(request.url, route.path)
+	response, err := route.handler.handle(request)
+	if err != nil {
+		response = HttpResponse{}
+		response.statusCode = 500
+	}
 
-	log.Printf("Incoming request: %s %s -> %d", request.method, request.url, response.statusCode)
+	log.Printf("Incoming request: %s %s -> %d", request.method, originalUrl, response.statusCode)
 
 	raw, err := response.RawHttpResponse()
 	if err != nil {
@@ -74,4 +83,11 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	// TODO implement chunking
 	_, err = conn.Write([]byte(raw))
+}
+
+func rewriteUrl(url string, prefix string) string {
+	if prefix == "/" {
+		return url
+	}
+	return strings.TrimPrefix(url, prefix)
 }
