@@ -1,6 +1,8 @@
 package httpserver
 
-import "strings"
+import (
+	"strings"
+)
 
 type Router struct {
 	routes []Route
@@ -13,7 +15,7 @@ type Route struct {
 }
 
 type Handler interface {
-	handle(HttpRequest) (HttpResponse, error)
+	Handle(HttpRequest) (HttpResponse, error)
 }
 
 func CreateRouter() *Router {
@@ -25,11 +27,6 @@ func (r *Router) AddRoute(method string, path string, handler Handler) {
 }
 
 func (r *Router) selectRoute(method string, path string) Route {
-
-	// "/" -> "/index.html" -> true
-	// "/" -> /app/example.json" -> true
-	// "/app" -> "/app/index.html" -> false
-
 	for _, route := range r.routes {
 		if route.method == method && strings.HasPrefix(path, route.path) {
 			return route

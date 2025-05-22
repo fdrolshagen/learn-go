@@ -7,15 +7,15 @@ import (
 )
 
 type HttpResponse struct {
-	statusCode  int
-	body        string
-	contentType string
+	StatusCode  int
+	Body        string
+	ContentType string
 }
 
 func (r *HttpResponse) RawHttpResponse() (string, error) {
 	var b strings.Builder
 
-	if _, err := fmt.Fprintf(&b, "HTTP/1.1 %d %s\r\n", r.statusCode, StatusCodes[r.statusCode]); err != nil {
+	if _, err := fmt.Fprintf(&b, "HTTP/1.1 %d %s\r\n", r.StatusCode, StatusCodes[r.StatusCode]); err != nil {
 		return "", err
 	}
 
@@ -27,14 +27,14 @@ func (r *HttpResponse) RawHttpResponse() (string, error) {
 		return "", err
 	}
 
-	if r.body != "" {
-		if _, err := fmt.Fprintf(&b, "Content-Length: %d\r\n", len(r.body)); err != nil {
+	if r.Body != "" {
+		if _, err := fmt.Fprintf(&b, "Content-Length: %d\r\n", len(r.Body)); err != nil {
 			return "", err
 		}
 	}
 
-	if r.contentType != "" {
-		if _, err := fmt.Fprintf(&b, "Content-type: %s\r\n", r.contentType); err != nil {
+	if r.ContentType != "" {
+		if _, err := fmt.Fprintf(&b, "Content-type: %s\r\n", r.ContentType); err != nil {
 			return "", err
 		}
 	}
@@ -43,7 +43,7 @@ func (r *HttpResponse) RawHttpResponse() (string, error) {
 		return "", err
 	}
 
-	if _, err := fmt.Fprintf(&b, "%s", r.body); err != nil {
+	if _, err := fmt.Fprintf(&b, "%s", r.Body); err != nil {
 		return "", err
 	}
 

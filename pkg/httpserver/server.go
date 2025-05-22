@@ -8,22 +8,16 @@ import (
 	"strings"
 )
 
-type Config struct {
-	Port      int
-	StaticDir string
-}
-
 type Server struct {
 	Port      int
 	StaticDir string
 	Router    *Router
 }
 
-func CreateServer(config Config, router *Router) *Server {
+func CreateServer(port int, router *Router) *Server {
 	return &Server{
-		Port:      config.Port,
-		StaticDir: config.StaticDir,
-		Router:    router,
+		Port:   port,
+		Router: router,
 	}
 }
 
@@ -68,13 +62,13 @@ func (s *Server) handleConnection(conn net.Conn) {
 	route := s.Router.selectRoute(request.method, request.url)
 	originalUrl := request.url
 	request.url = rewriteUrl(request.url, route.path)
-	response, err := route.handler.handle(request)
+	response, err := route.handler.Handle(request)
 	if err != nil {
 		response = HttpResponse{}
-		response.statusCode = 500
+		response.StatusCode = 500
 	}
 
-	log.Printf("Incoming request: %s %s -> %d", request.method, originalUrl, response.statusCode)
+	log.Printf("Incoming request: %s %s -> %d", request.method, originalUrl, response.StatusCode)
 
 	raw, err := response.RawHttpResponse()
 	if err != nil {

@@ -14,7 +14,7 @@ func CreateStaticHandler(dir string) StaticHandler {
 	}
 }
 
-func (h StaticHandler) handle(request HttpRequest) (HttpResponse, error) {
+func (h StaticHandler) Handle(request HttpRequest) (HttpResponse, error) {
 	var httpResponse HttpResponse
 
 	var requestedPath string
@@ -26,11 +26,11 @@ func (h StaticHandler) handle(request HttpRequest) (HttpResponse, error) {
 
 	file, err := readFile(h.StaticDir + requestedPath)
 	if err != nil {
-		httpResponse.statusCode = 404
+		httpResponse.StatusCode = 404
 	} else {
-		httpResponse.contentType = GuessContentType(requestedPath)
-		httpResponse.statusCode = 200
-		httpResponse.body = file
+		httpResponse.ContentType = GuessContentType(requestedPath)
+		httpResponse.StatusCode = 200
+		httpResponse.Body = file
 	}
 
 	return httpResponse, nil
