@@ -1,4 +1,4 @@
-package main
+package httpserver
 
 import (
 	"bytes"
@@ -34,7 +34,26 @@ type HttpResponse struct {
 	contentType string
 }
 
-func main() {
+type Config struct {
+	Port      string
+	StaticDir string
+}
+
+type Server struct {
+	Port      string
+	StaticDir string
+}
+
+func CreateServer(config Config) *Server {
+	return &Server{
+		Port:      config.Port,
+		StaticDir: config.StaticDir,
+	}
+}
+
+// TODO make the server configurable: port, static dir
+
+func (s *Server) StartServer() {
 	ln, err := net.Listen("tcp", ":"+strconv.Itoa(PORT))
 	if err != nil {
 		log.Fatal(err)
@@ -50,11 +69,11 @@ func main() {
 			continue
 		}
 
-		go handleConnection(conn)
+		go s.handleConnection(conn)
 	}
 }
 
-func handleConnection(conn net.Conn) {
+func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	buf := make([]byte, 1024)
@@ -77,12 +96,12 @@ func handleConnection(conn net.Conn) {
 
 	var requestedPath string
 	if httpRequest.url == "/" {
-		requestedPath = "index.html"
+		requestedPath = "/index.html"
 	} else {
 		requestedPath = httpRequest.url
 	}
 
-	httpResponse.body, err = readFile(requestedPath)
+	httpResponse.body, err = readFile(s.StaticDir + requestedPath)
 	if err != nil {
 		httpResponse.statusCode = 404
 	} else {
@@ -96,8 +115,8 @@ func handleConnection(conn net.Conn) {
 	conn.Write([]byte(response))
 }
 
-func readFile(url string) (string, error) {
-	file, err := os.ReadFile("./static/" + url)
+func readFile(filePath string) (string, error) {
+	file, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -159,7 +178,7 @@ func buildRawResponse(httpResponse HttpResponse) string {
 	}
 
 	fmt.Fprintf(&b, "\r\n")
-	fmt.Fprintf(&b, httpResponse.body)
+	fmt.Fprintf(&b, "%s", httpResponse.body)
 
 	return b.String()
 }
