@@ -4,7 +4,6 @@ import (
 	"io"
 	"log"
 	"net"
-	"os"
 	"strconv"
 )
 
@@ -57,40 +56,17 @@ func (s *Server) handleConnection(conn net.Conn) {
 		return
 	}
 
-	httpRequest, err := ParseHttp(buf)
+	request, err := ParseHttp(buf)
 	if err != nil {
 		log.Printf("Cannot parse HttpRequest %s", err)
 		return
 	}
 
-	var httpResponse HttpResponse
+	// TODO implement support for multiple Handlers/Routing
+	response := HandleStatic(request, s.StaticDir)
 
-	var requestedPath string
-	if httpRequest.url == "/" {
-		requestedPath = "/index.html"
-	} else {
-		requestedPath = httpRequest.url
-	}
+	log.Printf("Incoming request: %s %s -> %d", request.method, request.url, response.statusCode)
 
-	httpResponse.body, err = readFile(s.StaticDir + requestedPath)
-	if err != nil {
-		httpResponse.statusCode = 404
-	} else {
-		httpResponse.contentType = GuessContentType(requestedPath)
-		httpResponse.statusCode = 200
-	}
-
-	log.Printf("Incoming request: %s %s -> %d", httpRequest.method, httpRequest.url, httpResponse.statusCode)
-
-	response := CreateRawResponse(httpResponse)
-	_, err = conn.Write([]byte(response))
-}
-
-func readFile(filePath string) (string, error) {
-	file, err := os.ReadFile(filePath)
-	if err != nil {
-		return "", err
-	}
-
-	return string(file), nil
+	raw := CreateRawResponse(response)
+	_, err = conn.Write([]byte(raw))
 }
