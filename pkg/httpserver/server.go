@@ -67,6 +67,11 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	log.Printf("Incoming request: %s %s -> %d", request.method, request.url, response.statusCode)
 
-	raw := CreateRawResponse(response)
+	raw, err := response.RawHttpResponse()
+	if err != nil {
+		return
+	}
+
+	// TODO implement chunking
 	_, err = conn.Write([]byte(raw))
 }
