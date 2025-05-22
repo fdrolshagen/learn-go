@@ -12,19 +12,23 @@ type HttpResponse struct {
 	contentType string
 }
 
-func CreateRawResponse(httpResponse HttpResponse) string {
+func CreateRawResponse(response HttpResponse) string {
 	var b strings.Builder
 
-	fmt.Fprintf(&b, "HTTP/1.1 %d %s\r\n", httpResponse.statusCode, StatusCodes[httpResponse.statusCode])
+	fmt.Fprintf(&b, "HTTP/1.1 %d %s\r\n", response.statusCode, StatusCodes[response.statusCode])
 	fmt.Fprintf(&b, "Date: %s\r\n", getHttpDate())
 	fmt.Fprintf(&b, "Server: GO-HTTP (0.1)\r\n")
 
-	if httpResponse.contentType != "" {
-		fmt.Fprintf(&b, "Content-type: %s\r\n", httpResponse.contentType)
+	if response.body != "" {
+		fmt.Fprintf(&b, "Content-Length: %d\r\n", len(response.body))
+	}
+
+	if response.contentType != "" {
+		fmt.Fprintf(&b, "Content-type: %s\r\n", response.contentType)
 	}
 
 	fmt.Fprintf(&b, "\r\n")
-	fmt.Fprintf(&b, "%s", httpResponse.body)
+	fmt.Fprintf(&b, "%s", response.body)
 
 	return b.String()
 }
