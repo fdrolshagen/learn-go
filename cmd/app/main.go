@@ -6,7 +6,7 @@ import (
 
 func main() {
 	config := httpserver.Config{
-		Port:      ":9999",
+		Port:      9999,
 		StaticDir: "./web/static",
 	}
 
