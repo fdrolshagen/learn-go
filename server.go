@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -85,13 +86,13 @@ func handleConnection(conn net.Conn) {
 	if err != nil {
 		httpResponse.statusCode = 404
 	} else {
-		httpResponse.contentType = "text/html"
+		httpResponse.contentType = determineContentType(requestedPath)
 		httpResponse.statusCode = 200
 	}
 
 	log.Printf("Incoming request: %s %s -> %d", httpRequest.method, httpRequest.url, httpResponse.statusCode)
 
-	response := buildHttpReponse(httpResponse)
+	response := buildRawResponse(httpResponse)
 	conn.Write([]byte(response))
 }
 
@@ -102,6 +103,17 @@ func readFile(url string) (string, error) {
 	}
 
 	return string(file), nil
+}
+
+func determineContentType(url string) string {
+	switch ext := path.Ext(url); ext {
+	case ".html":
+		return "text/html"
+	case ".json":
+		return "application/json"
+	default:
+		return "text/plain"
+	}
 }
 
 func parseHttpRequest(b []byte) (HttpRequest, error) {
@@ -135,7 +147,7 @@ func parseHttpRequest(b []byte) (HttpRequest, error) {
 	return httpRequest, nil
 }
 
-func buildHttpReponse(httpResponse HttpResponse) string {
+func buildRawResponse(httpResponse HttpResponse) string {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "HTTP/1.1 %d %s\r\n", httpResponse.statusCode, StatusCodes[httpResponse.statusCode])
@@ -145,8 +157,8 @@ func buildHttpReponse(httpResponse HttpResponse) string {
 	if httpResponse.contentType != "" {
 		fmt.Fprintf(&b, "Content-type: %s\r\n", httpResponse.contentType)
 	}
-	fmt.Fprintf(&b, "\r\n")
 
+	fmt.Fprintf(&b, "\r\n")
 	fmt.Fprintf(&b, httpResponse.body)
 
 	return b.String()
