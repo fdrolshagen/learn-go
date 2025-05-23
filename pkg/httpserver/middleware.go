@@ -35,7 +35,7 @@ func PanicRecoveryMiddleware(next Handler) Handler {
 func RewriteAfterRoutingMiddleware(next Handler, prefix string) Handler {
 	return HandlerFunc(func(req HttpRequest) (resp HttpResponse, err error) {
 		if prefix != "/" {
-			req.url = strings.TrimPrefix(req.url, prefix)
+			req.Url = strings.TrimPrefix(req.Url, prefix)
 		}
 		return next.Handle(req)
 	})
@@ -43,9 +43,9 @@ func RewriteAfterRoutingMiddleware(next Handler, prefix string) Handler {
 
 func LoggingMiddleware(next Handler) Handler {
 	return HandlerFunc(func(req HttpRequest) (resp HttpResponse, err error) {
-		originalUrl := req.url
+		originalUrl := req.Url
 		resp, err = next.Handle(req)
-		log.Printf("Incoming request: %s %s -> %d", req.method, originalUrl, resp.StatusCode)
+		log.Printf("Incoming request: %s %s -> %d", req.Method, originalUrl, resp.StatusCode)
 		return resp, nil
 	})
 }

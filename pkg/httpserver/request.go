@@ -6,11 +6,14 @@ import (
 )
 
 type HttpRequest struct {
-	url      string
-	method   string
-	protocol string
-	headers  []string
-	body     []byte
+	Url           string
+	Params        map[string]string
+	Method        string
+	Protocol      string
+	ProtocolMajor int
+	ProtocolMinor int
+	headers       map[string]string
+	Body          []byte
 }
 
 func ParseHttpRequest(b []byte) (HttpRequest, error) {
@@ -23,7 +26,7 @@ func ParseHttpRequest(b []byte) (HttpRequest, error) {
 	}
 
 	headerBlock := b[:idx]
-	httpRequest.body = b[idx+len(separator):]
+	httpRequest.Body = b[idx+len(separator):]
 
 	headerLines := bytes.Split(headerBlock, []byte("\r\n"))
 	if len(headerLines) < 1 {
@@ -35,9 +38,9 @@ func ParseHttpRequest(b []byte) (HttpRequest, error) {
 		return httpRequest, fmt.Errorf("malformed http request: request line incomplete")
 	}
 
-	httpRequest.method = string(requestLine[0])
-	httpRequest.url = string(requestLine[1])
-	httpRequest.protocol = string(requestLine[2])
+	httpRequest.Method = string(requestLine[0])
+	httpRequest.Url = string(requestLine[1])
+	httpRequest.Protocol = string(requestLine[2])
 
 	// TODO parse headers, not needed yet
 

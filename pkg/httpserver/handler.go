@@ -29,10 +29,10 @@ func (h StaticHandler) Handle(request HttpRequest) (HttpResponse, error) {
 	var httpResponse HttpResponse
 
 	var requestedPath string
-	if request.url == "/" {
+	if request.Url == "/" {
 		requestedPath = "/index.html"
 	} else {
-		requestedPath = request.url
+		requestedPath = request.Url
 	}
 
 	file, err := readFile(h.StaticDir + requestedPath)

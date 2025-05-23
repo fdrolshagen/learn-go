@@ -58,7 +58,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		return
 	}
 
-	route := s.Router.selectRoute(request.method, request.url)
+	route := s.Router.selectRoute(request.Method, request.Url)
 	handler := PanicRecoveryMiddleware(route.handler)
 	handler = RewriteAfterRoutingMiddleware(handler, route.path)
 	handler = LoggingMiddleware(handler)
