@@ -16,3 +16,13 @@ var StatusCodes = map[int]string{
 	501: "not implemented",
 	502: "bad gateway",
 }
+
+const (
+	GET     = "GET"
+	POST    = "POST"
+	PUT     = "PUT"
+	DELETE  = "DELETE"
+	PATCH   = "PATCH"
+	HEAD    = "HEAD"
+	OPTIONS = "OPTIONS"
+)

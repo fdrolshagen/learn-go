@@ -19,23 +19,27 @@ func CreateRouter() *Router {
 }
 
 func (r *Router) GET(path string, handler Handler) {
-	r.addRoute("GET", path, handler)
+	r.addRoute(GET, path, handler)
 }
 
 func (r *Router) POST(path string, handler Handler) {
-	r.addRoute("POST", path, handler)
+	r.addRoute(POST, path, handler)
 }
 
 func (r *Router) PUT(path string, handler Handler) {
-	r.addRoute("PUT", path, handler)
+	r.addRoute(PUT, path, handler)
 }
 
 func (r *Router) DELETE(path string, handler Handler) {
-	r.addRoute("DELETE", path, handler)
+	r.addRoute(DELETE, path, handler)
 }
 
 func (r *Router) HEAD(path string, handler Handler) {
-	r.addRoute("HEAD", path, handler)
+	r.addRoute(HEAD, path, handler)
+}
+
+func (r *Router) PATCH(path string, handler Handler) {
+	r.addRoute(PATCH, path, handler)
 }
 
 func (r *Router) addRoute(method string, path string, handler Handler) {
