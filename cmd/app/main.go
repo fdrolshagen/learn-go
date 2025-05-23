@@ -21,6 +21,6 @@ func main() {
 
 type ApiHandler struct{}
 
-func (h ApiHandler) Handle(httpserver.HttpRequest) (httpserver.HttpResponse, error) {
+func (h ApiHandler) Handle(httpserver.Request) (httpserver.Response, error) {
 	panic("PANIC!")
 }

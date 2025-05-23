@@ -3,14 +3,14 @@ package httpserver
 import "os"
 
 type Handler interface {
-	Handle(HttpRequest) (HttpResponse, error)
+	Handle(Request) (Response, error)
 }
 
 type NotFoundHandler struct {
 }
 
-func (n NotFoundHandler) Handle(request HttpRequest) (HttpResponse, error) {
-	return HttpResponse{
+func (n NotFoundHandler) Handle(request Request) (Response, error) {
+	return Response{
 		StatusCode: 404,
 	}, nil
 }
@@ -25,8 +25,8 @@ func CreateStaticHandler(dir string) StaticHandler {
 	}
 }
 
-func (h StaticHandler) Handle(request HttpRequest) (HttpResponse, error) {
-	var httpResponse HttpResponse
+func (h StaticHandler) Handle(request Request) (Response, error) {
+	var resp Response
 
 	var requestedPath string
 	if request.Url == "/" {
@@ -37,14 +37,14 @@ func (h StaticHandler) Handle(request HttpRequest) (HttpResponse, error) {
 
 	file, err := readFile(h.StaticDir + requestedPath)
 	if err != nil {
-		httpResponse.StatusCode = 404
+		resp.StatusCode = 404
 	} else {
-		httpResponse.ContentType = GuessContentType(requestedPath)
-		httpResponse.StatusCode = 200
-		httpResponse.Body = file
+		resp.ContentType = GuessContentType(requestedPath)
+		resp.StatusCode = 200
+		resp.Body = file
 	}
 
-	return httpResponse, nil
+	return resp, nil
 }
 
 func readFile(filePath string) (string, error) {

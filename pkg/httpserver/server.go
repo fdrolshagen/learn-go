@@ -54,7 +54,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	request, err := ParseHttpRequest(buf)
 	if err != nil {
-		log.Printf("Cannot parse HttpRequest %s", err)
+		log.Printf("Cannot parse Request %s", err)
 		return
 	}
 
@@ -65,7 +65,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	response, err := handler.Handle(request)
 	if err != nil {
-		response = HttpResponse{
+		response = Response{
 			StatusCode:  500,
 			ContentType: "text/plain",
 			Body:        "internal server error",

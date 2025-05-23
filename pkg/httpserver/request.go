@@ -3,46 +3,55 @@ package httpserver
 import (
 	"bytes"
 	"fmt"
+	"strings"
 )
 
-type HttpRequest struct {
+type Request struct {
 	Url           string
 	Params        map[string]string
 	Method        string
 	Protocol      string
 	ProtocolMajor int
 	ProtocolMinor int
-	headers       map[string]string
+	Headers       map[string]string
 	Body          []byte
 }
 
-func ParseHttpRequest(b []byte) (HttpRequest, error) {
-	var httpRequest HttpRequest
+func ParseHttpRequest(b []byte) (Request, error) {
+	var req Request
 
 	separator := []byte("\r\n\r\n")
 	idx := bytes.Index(b, separator)
 	if idx < 0 {
-		return httpRequest, fmt.Errorf("malformed http request: no header/body separator")
+		return req, fmt.Errorf("malformed http request: no header/body separator")
 	}
 
 	headerBlock := b[:idx]
-	httpRequest.Body = b[idx+len(separator):]
+	req.Body = b[idx+len(separator):]
 
 	headerLines := bytes.Split(headerBlock, []byte("\r\n"))
 	if len(headerLines) < 1 {
-		return httpRequest, fmt.Errorf("malformed http request: no request line")
+		return req, fmt.Errorf("malformed http request: no request line")
 	}
 
 	requestLine := bytes.Split(headerLines[0], []byte(" "))
 	if len(requestLine) != 3 {
-		return httpRequest, fmt.Errorf("malformed http request: request line incomplete")
+		return req, fmt.Errorf("malformed http request: request line incomplete")
 	}
 
-	httpRequest.Method = string(requestLine[0])
-	httpRequest.Url = string(requestLine[1])
-	httpRequest.Protocol = string(requestLine[2])
+	req.Method = string(requestLine[0])
+	req.Url = string(requestLine[1])
+	req.Protocol = string(requestLine[2])
 
-	// TODO parse headers, not needed yet
+	for _, h := range headerLines[1:] {
+		if req.Headers == nil {
+			req.Headers = map[string]string{}
+		}
+		header := strings.SplitN(string(h), ":", 2)
+		req.Headers[strings.TrimSpace(header[0])] = strings.TrimSpace(header[1])
+	}
 
-	return httpRequest, nil
+	// TODO parse query params
+
+	return req, nil
 }

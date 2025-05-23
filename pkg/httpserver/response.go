@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-type HttpResponse struct {
+type Response struct {
 	StatusCode  int
 	Body        string
 	ContentType string
 }
 
-func (r *HttpResponse) RawHttpResponse() (string, error) {
+func (r *Response) RawHttpResponse() (string, error) {
 	var b strings.Builder
 
 	if _, err := fmt.Fprintf(&b, "HTTP/1.1 %d %s\r\n", r.StatusCode, StatusCodes[r.StatusCode]); err != nil {

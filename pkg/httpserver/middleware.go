@@ -8,18 +8,18 @@ import (
 
 type Middleware func(next Handler) Handler
 
-type HandlerFunc func(req HttpRequest) (HttpResponse, error)
+type HandlerFunc func(req Request) (Response, error)
 
-func (f HandlerFunc) Handle(req HttpRequest) (HttpResponse, error) {
+func (f HandlerFunc) Handle(req Request) (Response, error) {
 	return f(req)
 }
 
 func PanicRecoveryMiddleware(next Handler) Handler {
-	return HandlerFunc(func(req HttpRequest) (resp HttpResponse, err error) {
+	return HandlerFunc(func(req Request) (resp Response, err error) {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("PANIC: %v\n%s", r, debug.Stack())
-				resp = HttpResponse{
+				resp = Response{
 					StatusCode:  500,
 					Body:        "Internal Server Error",
 					ContentType: "text/plain; charset=utf-8",
@@ -33,7 +33,7 @@ func PanicRecoveryMiddleware(next Handler) Handler {
 }
 
 func RewriteAfterRoutingMiddleware(next Handler, prefix string) Handler {
-	return HandlerFunc(func(req HttpRequest) (resp HttpResponse, err error) {
+	return HandlerFunc(func(req Request) (resp Response, err error) {
 		if prefix != "/" {
 			req.Url = strings.TrimPrefix(req.Url, prefix)
 		}
@@ -42,7 +42,7 @@ func RewriteAfterRoutingMiddleware(next Handler, prefix string) Handler {
 }
 
 func LoggingMiddleware(next Handler) Handler {
-	return HandlerFunc(func(req HttpRequest) (resp HttpResponse, err error) {
+	return HandlerFunc(func(req Request) (resp Response, err error) {
 		originalUrl := req.Url
 		resp, err = next.Handle(req)
 		log.Printf("Incoming request: %s %s -> %d", req.Method, originalUrl, resp.StatusCode)
