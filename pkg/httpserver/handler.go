@@ -1,8 +1,19 @@
 package httpserver
 
-import (
-	"os"
-)
+import "os"
+
+type Handler interface {
+	Handle(HttpRequest) (HttpResponse, error)
+}
+
+type NotFoundHandler struct {
+}
+
+func (n NotFoundHandler) Handle(request HttpRequest) (HttpResponse, error) {
+	return HttpResponse{
+		StatusCode: 404,
+	}, nil
+}
 
 type StaticHandler struct {
 	StaticDir string

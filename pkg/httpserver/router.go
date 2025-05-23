@@ -14,10 +14,6 @@ type Route struct {
 	handler Handler
 }
 
-type Handler interface {
-	Handle(HttpRequest) (HttpResponse, error)
-}
-
 func CreateRouter() *Router {
 	return &Router{}
 }
