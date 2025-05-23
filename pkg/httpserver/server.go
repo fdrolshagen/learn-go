@@ -5,7 +5,6 @@ import (
 	"log"
 	"net"
 	"strconv"
-	"strings"
 )
 
 type Server struct {
@@ -60,15 +59,18 @@ func (s *Server) handleConnection(conn net.Conn) {
 	}
 
 	route := s.Router.selectRoute(request.method, request.url)
-	originalUrl := request.url
-	request.url = rewriteUrl(request.url, route.path)
-	response, err := route.handler.Handle(request)
-	if err != nil {
-		response = HttpResponse{}
-		response.StatusCode = 500
-	}
+	handler := PanicRecoveryMiddleware(route.handler)
+	handler = RewriteAfterRoutingMiddleware(handler, route.path)
+	handler = LoggingMiddleware(handler)
 
-	log.Printf("Incoming request: %s %s -> %d", request.method, originalUrl, response.StatusCode)
+	response, err := handler.Handle(request)
+	if err != nil {
+		response = HttpResponse{
+			StatusCode:  500,
+			ContentType: "text/plain",
+			Body:        "internal server error",
+		}
+	}
 
 	raw, err := response.RawHttpResponse()
 	if err != nil {
@@ -77,11 +79,4 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 	// TODO implement chunking
 	_, err = conn.Write([]byte(raw))
-}
-
-func rewriteUrl(url string, prefix string) string {
-	if prefix == "/" {
-		return url
-	}
-	return strings.TrimPrefix(url, prefix)
 }

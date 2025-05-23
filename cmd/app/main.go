@@ -22,9 +22,5 @@ func main() {
 type ApiHandler struct{}
 
 func (h ApiHandler) Handle(httpserver.HttpRequest) (httpserver.HttpResponse, error) {
-	var response httpserver.HttpResponse
-	response.StatusCode = 200
-	response.ContentType = "application/json"
-	response.Body = "{\"key\":\"value\"}"
-	return response, nil
+	panic("PANIC!")
 }
