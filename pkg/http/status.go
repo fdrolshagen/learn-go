@@ -1,4 +1,4 @@
-package httpserver
+package http
 
 var StatusCodes = map[int]string{
 	200: "ok",

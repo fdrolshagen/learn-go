@@ -1,4 +1,4 @@
-package httpserver
+package http
 
 import (
 	"io"
@@ -26,7 +26,7 @@ func (s *Server) StartServer() {
 		log.Fatal(err)
 	}
 
-	log.Printf("Now listening on port %d\n", s.Port)
+	log.Printf("Now listening on %s\n", ln.Addr().String())
 
 	for {
 		conn, err := ln.Accept()
@@ -52,7 +52,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		return
 	}
 
-	request, err := ParseHttpRequest(buf)
+	request, err := ParseRequest(buf)
 	if err != nil {
 		log.Printf("Cannot parse Request %s", err)
 		return
@@ -72,7 +72,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		}
 	}
 
-	raw, err := response.RawHttpResponse()
+	raw, err := response.RawResponse()
 	if err != nil {
 		return
 	}

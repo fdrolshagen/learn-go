@@ -1,4 +1,4 @@
-package httpserver
+package http
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ type Response struct {
 	ContentType string
 }
 
-func (r *Response) RawHttpResponse() (string, error) {
+func (r *Response) RawResponse() (string, error) {
 	var b strings.Builder
 
 	if _, err := fmt.Fprintf(&b, "HTTP/1.1 %d %s\r\n", r.StatusCode, StatusCodes[r.StatusCode]); err != nil {

@@ -1,4 +1,4 @@
-package httpserver
+package http
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ type Request struct {
 	Body          []byte
 }
 
-func ParseHttpRequest(b []byte) (Request, error) {
+func ParseRequest(b []byte) (Request, error) {
 	var req Request
 
 	separator := []byte("\r\n\r\n")

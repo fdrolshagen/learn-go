@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fdrolshagen/server/pkg/httpserver"
+	"fdrolshagen/server/pkg/http"
 	"flag"
 )
 
@@ -10,17 +10,17 @@ func main() {
 	dir := flag.String("dir", "./", "Directory to serve")
 	flag.Parse()
 
-	staticHandler := httpserver.CreateStaticHandler(*dir)
-	router := httpserver.CreateRouter()
+	staticHandler := http.CreateStaticHandler(*dir)
+	router := http.CreateRouter()
 
 	router.GET("/web", staticHandler)
 	router.GET("/api", ApiHandler{})
-	server := httpserver.CreateServer(*port, router)
+	server := http.CreateServer(*port, router)
 	server.StartServer()
 }
 
 type ApiHandler struct{}
 
-func (h ApiHandler) Handle(httpserver.Request) (httpserver.Response, error) {
+func (h ApiHandler) Handle(http.Request) (http.Response, error) {
 	panic("PANIC!")
 }
