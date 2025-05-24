@@ -59,11 +59,11 @@ func (s *Server) handleConnection(conn net.Conn) {
 	}
 
 	route := s.Router.selectRoute(request.Method, request.Url)
-	handler := PanicRecoveryMiddleware(route.handler)
-	handler = RewriteAfterRoutingMiddleware(handler, route.path)
-	handler = LoggingMiddleware(handler)
+	handle := PanicRecoveryMiddleware(route.handle)
+	handle = RewriteAfterRoutingMiddleware(handle, route.path)
+	handle = LoggingMiddleware(handle)
 
-	response, err := handler.Handle(request)
+	response, err := handle(request)
 	if err != nil {
 		response = Response{
 			StatusCode:  500,

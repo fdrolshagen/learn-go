@@ -10,17 +10,15 @@ func main() {
 	dir := flag.String("dir", "./", "Directory to serve")
 	flag.Parse()
 
-	staticHandler := http.CreateStaticHandler(*dir)
+	staticHandler := http.StaticHandler{StaticDir: *dir}
 	router := http.CreateRouter()
 
-	router.GET("/web", staticHandler)
-	router.GET("/api", ApiHandler{})
+	router.GET("/web", staticHandler.Handle)
+	router.GET("/panic", HandleWithPanic)
 	server := http.CreateServer(*port, router)
 	server.StartServer()
 }
 
-type ApiHandler struct{}
-
-func (h ApiHandler) Handle(http.Request) (http.Response, error) {
+func HandleWithPanic(http.Request) (http.Response, error) {
 	panic("PANIC!")
 }

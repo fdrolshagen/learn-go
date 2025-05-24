@@ -1,15 +1,13 @@
 package http
 
-import "os"
+import (
+	"os"
+	"path"
+)
 
-type Handler interface {
-	Handle(Request) (Response, error)
-}
+type Handle func(Request) (Response, error)
 
-type NotFoundHandler struct {
-}
-
-func (n NotFoundHandler) Handle(request Request) (Response, error) {
+func HandleNotFound(_ Request) (Response, error) {
 	return Response{
 		StatusCode: 404,
 	}, nil
@@ -17,12 +15,6 @@ func (n NotFoundHandler) Handle(request Request) (Response, error) {
 
 type StaticHandler struct {
 	StaticDir string
-}
-
-func CreateStaticHandler(dir string) StaticHandler {
-	return StaticHandler{
-		StaticDir: dir,
-	}
 }
 
 func (h StaticHandler) Handle(request Request) (Response, error) {
@@ -54,4 +46,15 @@ func readFile(filePath string) (string, error) {
 	}
 
 	return string(file), nil
+}
+
+func GuessContentType(url string) string {
+	switch ext := path.Ext(url); ext {
+	case ".html":
+		return "text/html"
+	case ".json":
+		return "application/json"
+	default:
+		return "text/plain"
+	}
 }
