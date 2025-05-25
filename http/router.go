@@ -14,10 +14,12 @@ type Route struct {
 	handle Handle
 }
 
+// CreateRouter Creates and Returns a Router instance
 func CreateRouter() *Router {
 	return &Router{}
 }
 
+// GET add a Handle for the specified path using the "GET" method
 func (r *Router) GET(path string, handle Handle) {
 	r.addRoute(GET, path, handle)
 }

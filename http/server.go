@@ -8,9 +8,8 @@ import (
 )
 
 type Server struct {
-	Port      int
-	StaticDir string
-	Router    *Router
+	Port   int
+	Router *Router
 }
 
 func CreateServer(port int, router *Router) *Server {
@@ -59,24 +58,30 @@ func (s *Server) handleConnection(conn net.Conn) {
 	}
 
 	route := s.Router.selectRoute(request.Method, request.Url)
-	handle := PanicRecoveryMiddleware(route.handle)
-	handle = RewriteAfterRoutingMiddleware(handle, route.path)
-	handle = LoggingMiddleware(handle)
+	resp := s.handle(route, request)
 
-	response, err := handle(request)
-	if err != nil {
-		response = Response{
-			StatusCode:  500,
-			ContentType: "text/plain",
-			Body:        "internal server error",
-		}
-	}
-
-	raw, err := response.RawResponse()
+	raw, err := resp.RawResponse()
 	if err != nil {
 		return
 	}
 
 	// TODO implement chunking
 	_, err = conn.Write([]byte(raw))
+}
+
+func (s *Server) handle(route Route, req Request) Response {
+	handle := PanicRecoveryMiddleware(route.handle)
+	handle = RewriteAfterRoutingMiddleware(handle, route.path)
+	handle = LoggingMiddleware(handle)
+
+	response, err := handle(req)
+	if err != nil {
+		return Response{
+			StatusCode:  500,
+			ContentType: "text/plain",
+			Body:        "internal server error",
+		}
+	}
+
+	return response
 }
