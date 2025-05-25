@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Request holds all information about a valid HTTP-Request
 type Request struct {
 	Url           string
 	Params        map[string]string
@@ -17,6 +18,8 @@ type Request struct {
 	Body          []byte
 }
 
+// ParseRequest parses a []byte and tries to construct a valid Request.
+// Returns an error if the []byte cannot be parsed as a valid HTTP-Request
 func ParseRequest(b []byte) (Request, error) {
 	var req Request
 

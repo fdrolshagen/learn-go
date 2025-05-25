@@ -6,12 +6,15 @@ import (
 	"time"
 )
 
+// Response holds all information about a HTTP-Response
 type Response struct {
 	StatusCode  int
 	Body        string
 	ContentType string
 }
 
+// RawResponse converts the Response to a valid HTTP-Response containing all necessary
+// protocol headers and body
 func (r *Response) RawResponse() (string, error) {
 	var b strings.Builder
 

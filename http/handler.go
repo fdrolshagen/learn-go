@@ -5,18 +5,23 @@ import (
 	"path"
 )
 
+// Handle needs to be implemented to be passed as a Handler function for a Route
 type Handle func(Request) (Response, error)
 
+// HandleNotFound is a default implementation which always returns an HTTP 404 (not found) response
 func HandleNotFound(_ Request) (Response, error) {
 	return Response{
 		StatusCode: 404,
 	}, nil
 }
 
+// StaticHandler holds information about the static directory used for the default implementation
 type StaticHandler struct {
 	StaticDir string
 }
 
+// Handle is a default implementation inside the StaticHandler which allows to serve a directory
+// on disk
 func (h StaticHandler) Handle(request Request) (Response, error) {
 	var resp Response
 
