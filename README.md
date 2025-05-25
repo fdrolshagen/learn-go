@@ -5,11 +5,15 @@ This repository contains a personal collection of packages implemented for the p
 
 ## HTTP
 
-Minimal implementation of HTTP 1.1 (according to [RFC 2616](https://datatracker.ietf.org/doc/html/rfc2616)).
+Minimal implementation of HTTP 1.1 (according to [RFC 2616](https://datatracker.ietf.org/doc/html/rfc2616)) without using net/http from the standard library.
 
-This package allows the user to create a simple HTTP server with routing capabilities and middleware support.
+The following features are currently implemented and might be extended depending on my spare time :laughing:
+- create and start an HTTP server
+- routing with user defined handlers
+- provied a default implementation for a static handler to serve files from disk
+- middleware support to easily extend the functionality
 
-[!IMPORTANT] OBVIOUSLY: DO NOT USE THIS IN PRODUCTION! ;)
+:exclamation: OBVIOUSLY: DO NOT USE THIS IN PRODUCTION! :smirk:
 
 ### Usage
 
