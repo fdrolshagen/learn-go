@@ -2,8 +2,10 @@ package http
 
 import (
 	"log"
+	"path"
 	"runtime/debug"
 	"strings"
+	"time"
 )
 
 type Middleware func(next Handle) Handle
@@ -28,18 +30,27 @@ func PanicRecoveryMiddleware(next Handle) Handle {
 
 func RewriteAfterRoutingMiddleware(next Handle, prefix string) Handle {
 	return func(req Request) (resp Response, err error) {
+		p := req.Url
+
 		if prefix != "/" {
-			req.Url = strings.TrimPrefix(req.Url, prefix)
+			p = strings.TrimPrefix(p, prefix)
 		}
+
+		path.Clean(p)
+
+		req.Url = p
 		return next(req)
 	}
 }
 
-func LoggingMiddleware(next Handle) Handle {
+func DefaultAccessLogMiddleware(next Handle) Handle {
 	return func(req Request) (resp Response, err error) {
-		originalUrl := req.Url
+		start := time.Now()
+		url := req.Url
+
 		resp, err = next(req)
-		log.Printf("Incoming request: %s %s -> %d", req.Method, originalUrl, resp.StatusCode)
-		return resp, nil
+
+		log.Printf("Incoming request: %s %s --> %d (%d ms)", req.Method, url, resp.StatusCode, time.Since(start).Microseconds())
+		return resp, err
 	}
 }

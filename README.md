@@ -30,11 +30,13 @@ func main() {
 	dir := flag.String("dir", "./", "Directory to serve")
 	flag.Parse()
 
-	staticHandler := http.StaticHandler{StaticDir: *dir}
 	router := http.CreateRouter()
+	router.WithMiddleware(http.DefaultAccessLogMiddleware)
 
+	staticHandler := http.StaticHandler{StaticDir: *dir}
 	router.GET("/web", staticHandler.Handle)
 	router.GET("/health", Health)
+
 	server := http.CreateServer(*port, router)
 	server.StartServer()
 }
@@ -46,4 +48,5 @@ func Health(http.Request) (http.Response, error) {
 		Body:        "{\"status\": \"up\"}",
 	}, nil
 }
+
 ```
