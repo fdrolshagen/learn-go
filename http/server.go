@@ -72,6 +72,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 func (s *Server) handle(route Route, req Request) Response {
 	handle := PanicRecoveryMiddleware(route.handle)
 	handle = RewriteAfterRoutingMiddleware(handle, route.path)
+	handle = DefaultAccessLogMiddleware(handle)
 
 	response, err := handle(req)
 	if err != nil {

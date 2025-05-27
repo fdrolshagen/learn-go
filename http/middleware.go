@@ -2,7 +2,6 @@ package http
 
 import (
 	"log"
-	"path"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -36,7 +35,9 @@ func RewriteAfterRoutingMiddleware(next Handle, prefix string) Handle {
 			p = strings.TrimPrefix(p, prefix)
 		}
 
-		path.Clean(p)
+		if p == "" {
+			p = "/"
+		}
 
 		req.Url = p
 		return next(req)

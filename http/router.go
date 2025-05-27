@@ -64,6 +64,9 @@ func (r *Router) addRoute(method string, path string, handle Handle) {
 
 func (r *Router) selectRoute(method string, path string) Route {
 	for _, route := range r.routes {
+		// should this rather be an exact match instead of just checking for the prefix?
+		// also add support for path params like: /users/{user}
+		// will need to parse these somewhere and pass to the handler
 		if route.method == method && strings.HasPrefix(path, route.path) {
 			return route
 		}

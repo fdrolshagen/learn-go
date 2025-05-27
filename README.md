@@ -31,7 +31,7 @@ func main() {
 	flag.Parse()
 
 	router := http.CreateRouter()
-	router.WithMiddleware(http.DefaultAccessLogMiddleware)
+	router.WithMiddleware(SecurityMiddleware)
 
 	staticHandler := http.StaticHandler{StaticDir: *dir}
 	router.GET("/web", staticHandler.Handle)
@@ -49,4 +49,10 @@ func Health(http.Request) (http.Response, error) {
 	}, nil
 }
 
+func SecurityMiddleware(next http.Handle) http.Handle {
+	return func(req http.Request) (resp http.Response, err error) {
+		// check Authorization header or something else before/after further processing
+		return next(req)
+	}
+}
 ```

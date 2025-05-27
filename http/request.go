@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"fmt"
+	"path"
 	"strings"
 )
 
@@ -43,7 +44,8 @@ func ParseRequest(b []byte) (Request, error) {
 	}
 
 	req.Method = string(requestLine[0])
-	req.Url = string(requestLine[1])
+	url := string(requestLine[1])
+	req.Url = Sanitize(url)
 	req.Protocol = string(requestLine[2])
 
 	for _, h := range headerLines[1:] {
@@ -57,4 +59,8 @@ func ParseRequest(b []byte) (Request, error) {
 	// TODO parse query params
 
 	return req, nil
+}
+
+func Sanitize(p string) string {
+	return path.Clean(p)
 }
