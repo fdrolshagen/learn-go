@@ -10,7 +10,7 @@ import (
 // Request holds all information about a valid HTTP-Request
 type Request struct {
 	Url           string
-	Params        map[string]string
+	QueryParams   map[string]string
 	Method        string
 	Protocol      string
 	ProtocolMajor int
@@ -38,15 +38,36 @@ func ParseRequest(b []byte) (Request, error) {
 		return req, fmt.Errorf("malformed http request: no request line")
 	}
 
+	// requestLine contains: GET /url HTTP1.1
 	requestLine := bytes.Split(headerLines[0], []byte(" "))
 	if len(requestLine) != 3 {
 		return req, fmt.Errorf("malformed http request: request line incomplete")
 	}
 
 	req.Method = string(requestLine[0])
-	url := string(requestLine[1])
-	req.Url = Sanitize(url)
 	req.Protocol = string(requestLine[2])
+
+	url := string(requestLine[1])
+	url = path.Clean(url)
+	req.Url = url
+
+	// url might contain: /url?key=value&foo=bar
+	urlSplitted := strings.Split(url, "?")
+	if len(urlSplitted) > 2 {
+		return req, fmt.Errorf("malformed http request: url contains more than one '?': %s", url)
+	}
+
+	if len(urlSplitted) == 2 {
+		req.Url = urlSplitted[0]
+		req.QueryParams = map[string]string{}
+		params := strings.Split(urlSplitted[1], "&")
+		for _, param := range params {
+			kv := strings.Split(param, "=")
+			if len(kv) == 2 {
+				req.QueryParams[kv[0]] = kv[1]
+			}
+		}
+	}
 
 	for _, h := range headerLines[1:] {
 		if req.Headers == nil {
@@ -56,11 +77,5 @@ func ParseRequest(b []byte) (Request, error) {
 		req.Headers[strings.TrimSpace(header[0])] = strings.TrimSpace(header[1])
 	}
 
-	// TODO parse query params
-
 	return req, nil
-}
-
-func Sanitize(p string) string {
-	return path.Clean(p)
 }
