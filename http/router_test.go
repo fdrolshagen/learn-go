@@ -105,6 +105,14 @@ func TestRouter_selectRoute_routeIsSubRoute(t *testing.T) {
 	assert.Equal(t, ptr(HandleNotFound), ptr(route.handle), "Sub Route should not match and return HandleNotFound")
 }
 
+func TestRouter_selectRoute_routeIsStatic(t *testing.T) {
+	router := CreateRouter()
+	router.WithStatic("/foo", NOPHandler)
+	route := router.selectRoute("GET", "/foo/bar")
+
+	assert.Equal(t, ptr(NOPHandler), ptr(route.handle))
+}
+
 func NOPHandler(_ Request) (Response, error) {
 	return Response{}, nil
 }

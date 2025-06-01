@@ -1,5 +1,7 @@
 package http
 
+import "strings"
+
 // Router holds all added routes
 type Router struct {
 	routes      []Route
@@ -11,6 +13,7 @@ type Route struct {
 	method string
 	path   string
 	handle Handle
+	static bool
 }
 
 // CreateRouter Creates and Returns a Router instance
@@ -48,6 +51,13 @@ func (r *Router) PATCH(path string, handle Handle) {
 	r.addRoute(PATCH, path, r.stackHandles(handle))
 }
 
+// WithStatic adds a Handle for the specified path using the "GET" method
+// Route-Selection allows nested path sections
+// example: /web/ and /web/index.html will both match
+func (r *Router) WithStatic(path string, handle Handle) {
+	r.addStaticRoute(GET, path, r.stackHandles(handle))
+}
+
 // WithMiddleware configures a Middleware to be used on all routes within this Router.
 // Middleware always needs to be configured before adding a Route
 func (r *Router) WithMiddleware(middleware Middleware) {
@@ -55,19 +65,31 @@ func (r *Router) WithMiddleware(middleware Middleware) {
 }
 
 func (r *Router) addRoute(method string, path string, handle Handle) {
-	r.routes = append(r.routes, Route{method: method, path: path, handle: handle})
+	r.routes = append(r.routes, Route{method: method, path: path, handle: handle, static: false})
+}
+
+func (r *Router) addStaticRoute(method string, path string, handle Handle) {
+	r.routes = append(r.routes, Route{method: method, path: path, handle: handle, static: true})
 }
 
 func (r *Router) selectRoute(method string, path string) Route {
 	for _, route := range r.routes {
 		// add support for path params like: /users/{user}
 		// will need to parse these somewhere and pass to the handler
-		if route.method == method && path == route.path {
+		if route.method == method && pathMatches(route, path) {
 			return route
 		}
 	}
 
 	return Route{method: method, path: path, handle: HandleNotFound}
+}
+
+func pathMatches(route Route, path string) bool {
+	if route.static {
+		return strings.HasPrefix(path, route.path)
+	}
+
+	return path == route.path
 }
 
 func (r *Router) stackHandles(handle Handle) Handle {

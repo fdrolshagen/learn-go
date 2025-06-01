@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"os"
 	"path"
 )
@@ -31,6 +32,8 @@ func (h StaticHandler) Handle(request Request) (Response, error) {
 	} else {
 		requestedPath = request.Url
 	}
+
+	fmt.Printf("%s : %s\n", h.StaticDir, requestedPath)
 
 	file, err := readFile(h.StaticDir + requestedPath)
 	if err != nil {
