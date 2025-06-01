@@ -51,11 +51,11 @@ func (r *Router) PATCH(path string, handle Handle) {
 	r.addRoute(PATCH, path, r.stackHandles(handle))
 }
 
-// WithStatic adds a Handle for the specified path using the "GET" method
-// Route-Selection allows nested path sections
-// example: /web/ and /web/index.html will both match
-func (r *Router) WithStatic(path string, handle Handle) {
-	r.addStaticRoute(GET, path, r.stackHandles(handle))
+// WithStatic adds a StaticHandler serving the contents of dir on the specified path
+// If paths under this static path should match another route, the other route must be configured first
+func (r *Router) WithStatic(path string, dir string) {
+	h := StaticHandler{StaticDir: dir}
+	r.addStaticRoute(GET, path, r.stackHandles(h.Handle))
 }
 
 // WithMiddleware configures a Middleware to be used on all routes within this Router.
@@ -81,7 +81,7 @@ func (r *Router) selectRoute(method string, path string) Route {
 		}
 	}
 
-	return Route{method: method, path: path, handle: HandleNotFound}
+	return Route{method: method, path: path, handle: HandleNotFound, static: false}
 }
 
 func pathMatches(route Route, path string) bool {

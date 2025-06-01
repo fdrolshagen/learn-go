@@ -12,11 +12,8 @@ func main() {
 
 	router := http.CreateRouter()
 	router.WithMiddleware(SecurityMiddleware)
-
 	router.GET("/health", Health)
-
-	staticHandler := http.StaticHandler{StaticDir: *dir}
-	router.WithStatic("/", staticHandler.Handle)
+	router.WithStatic("/", *dir)
 
 	server := http.CreateServer(*port, router)
 	server.StartServer()
