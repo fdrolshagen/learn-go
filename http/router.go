@@ -10,10 +10,10 @@ type Router struct {
 
 // Route holds information about a single route
 type Route struct {
-	method string
-	path   string
-	handle Handle
-	static bool
+	method  string
+	path    string
+	handle  Handle
+	isMount bool
 }
 
 // CreateRouter Creates and Returns a Router instance
@@ -51,9 +51,9 @@ func (r *Router) PATCH(path string, handle Handle) {
 	r.addRoute(PATCH, path, r.stackHandles(handle))
 }
 
-// WithStatic adds a StaticHandler serving the contents of dir on the specified path
-// If paths under this static path should match another route, the other route must be configured first
-func (r *Router) WithStatic(path string, dir string) {
+// Mount adds a StaticHandler serving the contents of dir on the specified path.
+// Paths that should have routing precedence, should be configured before mounting
+func (r *Router) Mount(path string, dir string) {
 	h := StaticHandler{StaticDir: dir}
 	r.addStaticRoute(GET, path, r.stackHandles(h.Handle))
 }
@@ -65,11 +65,11 @@ func (r *Router) WithMiddleware(middleware Middleware) {
 }
 
 func (r *Router) addRoute(method string, path string, handle Handle) {
-	r.routes = append(r.routes, Route{method: method, path: path, handle: handle, static: false})
+	r.routes = append(r.routes, Route{method: method, path: path, handle: handle, isMount: false})
 }
 
 func (r *Router) addStaticRoute(method string, path string, handle Handle) {
-	r.routes = append(r.routes, Route{method: method, path: path, handle: handle, static: true})
+	r.routes = append(r.routes, Route{method: method, path: path, handle: handle, isMount: true})
 }
 
 func (r *Router) prependRoute(route Route) {
@@ -86,15 +86,7 @@ func (r *Router) selectRoute(method string, path string) Route {
 		}
 	}
 
-	return Route{method: method, path: path, handle: HandleNotFound, static: false}
-}
-
-func pathMatches(route Route, path string) bool {
-	if route.static {
-		return strings.HasPrefix(path, route.path)
-	}
-
-	return path == route.path
+	return Route{method: method, path: path, handle: HandleNotFound, isMount: false}
 }
 
 func (r *Router) stackHandles(handle Handle) Handle {
@@ -103,4 +95,12 @@ func (r *Router) stackHandles(handle Handle) Handle {
 		stackedHandle = r.middlewares[idx](stackedHandle)
 	}
 	return stackedHandle
+}
+
+func pathMatches(route Route, path string) bool {
+	if route.isMount {
+		return strings.HasPrefix(path, route.path)
+	}
+
+	return path == route.path
 }

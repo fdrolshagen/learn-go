@@ -33,7 +33,7 @@ func main() {
 	router := http.CreateRouter()
 	router.WithMiddleware(SecurityMiddleware)
 	router.GET("/health", Health)
-	router.WithStatic("/", *dir)
+	router.Mount("/", *dir)
 
 	server := http.CreateServer(*port, router)
 	server.StartServer()

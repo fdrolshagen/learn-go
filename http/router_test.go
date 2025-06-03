@@ -107,10 +107,10 @@ func TestRouter_selectRoute_routeIsSubRoute(t *testing.T) {
 
 func TestRouter_selectRoute_routeIsStatic(t *testing.T) {
 	router := CreateRouter()
-	router.WithStatic("/foo", "./")
+	router.Mount("/foo", "./")
 	route := router.selectRoute("GET", "/foo/bar")
 
-	assert.True(t, route.static)
+	assert.True(t, route.isMount)
 }
 
 func NOPHandler(_ Request) (Response, error) {
