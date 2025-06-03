@@ -72,6 +72,11 @@ func (r *Router) addStaticRoute(method string, path string, handle Handle) {
 	r.routes = append(r.routes, Route{method: method, path: path, handle: handle, static: true})
 }
 
+func (r *Router) prependRoute(route Route) {
+	routes := append([]Route{route}, r.routes...)
+	r.routes = routes
+}
+
 func (r *Router) selectRoute(method string, path string) Route {
 	for _, route := range r.routes {
 		// add support for path params like: /users/{user}

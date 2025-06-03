@@ -10,12 +10,18 @@ import (
 type Server struct {
 	Port   int
 	Router *Router
+	mr     *MetricRegistry
 }
 
 func CreateServer(port int, router *Router) *Server {
+	mr := CreateMetricRegistry()
+	route := mr.getActuatorRoute()
+	router.prependRoute(route)
+
 	return &Server{
 		Port:   port,
 		Router: router,
+		mr:     mr,
 	}
 }
 
@@ -50,6 +56,9 @@ func (s *Server) handleConnection(conn net.Conn) {
 		log.Printf("Cannot read Request %s", err)
 		return
 	}
+
+	// just a prototype for now
+	go s.mr.Increment("total_request_count")
 
 	request, err := ParseRequest(buf)
 	if err != nil {
