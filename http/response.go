@@ -13,47 +13,59 @@ type Response struct {
 	ContentType string
 }
 
+const (
+	HTTPVersion    = "HTTP/1.1"
+	ServerName     = "GO-HTTP (0.1)"
+	HTTPDateFormat = "Mon, 02 Jan 2006 15:04:05 GMT"
+	CRLF           = "\r\n"
+)
+
 // RawResponse converts the Response to a valid HTTP-Response containing all necessary
 // protocol headers and body
 func (r *Response) RawResponse() (string, error) {
 	var b strings.Builder
 
-	if _, err := fmt.Fprintf(&b, "HTTP/1.1 %d %s\r\n", r.StatusCode, StatusCodes[r.StatusCode]); err != nil {
+	// Write status line
+	if _, err := fmt.Fprintf(&b, "%s %d %s%s", HTTPVersion, r.StatusCode, StatusCodes[r.StatusCode], CRLF); err != nil {
 		return "", err
 	}
 
-	if _, err := fmt.Fprintf(&b, "Date: %s\r\n", getHttpDate()); err != nil {
-		return "", err
+	// Write mandatory headers
+	if err := writeHeader(&b, "Date", date()); err != nil {
+		return "", fmt.Errorf("failed to write status line: %w", err)
 	}
 
-	if _, err := fmt.Fprintf(&b, "Server: GO-HTTP (0.1)\r\n"); err != nil {
-		return "", err
+	if err := writeHeader(&b, "Server", ServerName); err != nil {
+		return "", fmt.Errorf("failed to write server header: %w", err)
 	}
 
+	// Write optional headers
 	if r.Body != "" {
-		if _, err := fmt.Fprintf(&b, "Content-Length: %d\r\n", len(r.Body)); err != nil {
-			return "", err
+		if err := writeHeader(&b, "Content-Length", fmt.Sprint(len(r.Body))); err != nil {
+			return "", fmt.Errorf("failed to write content length: %w", err)
 		}
+
 	}
 
 	if r.ContentType != "" {
-		if _, err := fmt.Fprintf(&b, "Content-type: %s\r\n", r.ContentType); err != nil {
-			return "", err
+		if err := writeHeader(&b, "Content-Type", r.ContentType); err != nil {
+			return "", fmt.Errorf("failed to write content type: %w", err)
 		}
 	}
 
-	if _, err := fmt.Fprintf(&b, "\r\n"); err != nil {
-		return "", err
-	}
-
-	if _, err := fmt.Fprintf(&b, "%s", r.Body); err != nil {
-		return "", err
+	// Write Body
+	if _, err := fmt.Fprintf(&b, "%s%s", CRLF, r.Body); err != nil {
+		return "", fmt.Errorf("failed to write body: %w", err)
 	}
 
 	return b.String(), nil
 }
 
-func getHttpDate() string {
-	const format = "Mon, 02 Jan 2006 15:04:05 GMT"
-	return time.Now().UTC().Format(format)
+func writeHeader(b *strings.Builder, name, value string) error {
+	_, err := fmt.Fprintf(b, "%s: %s%s", name, value, CRLF)
+	return err
+}
+
+func date() string {
+	return time.Now().UTC().Format(HTTPDateFormat)
 }
