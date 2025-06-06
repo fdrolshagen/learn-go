@@ -12,7 +12,7 @@ type Router struct {
 type Route struct {
 	method  string
 	path    string
-	handle  Handle
+	handle  HandleFunc
 	isMount bool
 }
 
@@ -21,40 +21,40 @@ func CreateRouter() *Router {
 	return &Router{}
 }
 
-// GET add a Handle for the specified path using the "GET" method
-func (r *Router) GET(path string, handle Handle) {
+// GET add a HandleFunc for the specified path using the "GET" method
+func (r *Router) GET(path string, handle HandleFunc) {
 	r.addRoute(GET, path, r.stackHandles(handle))
 }
 
-// POST add a Handle for the specified path using the "POST" method
-func (r *Router) POST(path string, handle Handle) {
+// POST add a HandleFunc for the specified path using the "POST" method
+func (r *Router) POST(path string, handle HandleFunc) {
 	r.addRoute(POST, path, r.stackHandles(handle))
 }
 
-// PUT add a Handle for the specified path using the "PUT" method
-func (r *Router) PUT(path string, handle Handle) {
+// PUT add a HandleFunc for the specified path using the "PUT" method
+func (r *Router) PUT(path string, handle HandleFunc) {
 	r.addRoute(PUT, path, r.stackHandles(handle))
 }
 
-// DELETE add a Handle for the specified path using the "DELETE" method
-func (r *Router) DELETE(path string, handle Handle) {
+// DELETE add a HandleFunc for the specified path using the "DELETE" method
+func (r *Router) DELETE(path string, handle HandleFunc) {
 	r.addRoute(DELETE, path, r.stackHandles(handle))
 }
 
-// HEAD add a Handle for the specified path using the "HEAD" method
-func (r *Router) HEAD(path string, handle Handle) {
+// HEAD add a HandleFunc for the specified path using the "HEAD" method
+func (r *Router) HEAD(path string, handle HandleFunc) {
 	r.addRoute(HEAD, path, r.stackHandles(handle))
 }
 
-// PATCH add a Handle for the specified path using the "PATCH" method
-func (r *Router) PATCH(path string, handle Handle) {
+// PATCH add a HandleFunc for the specified path using the "PATCH" method
+func (r *Router) PATCH(path string, handle HandleFunc) {
 	r.addRoute(PATCH, path, r.stackHandles(handle))
 }
 
 // Mount adds a StaticHandler serving the contents of dir on the specified path.
 // Paths that should have routing precedence, should be configured before mounting
 func (r *Router) Mount(path string, dir string) {
-	h := StaticHandler{StaticDir: dir}
+	h := CreateStaticHandler(dir)
 	r.addStaticRoute(GET, path, r.stackHandles(h.Handle))
 }
 
@@ -64,11 +64,11 @@ func (r *Router) WithMiddleware(middleware Middleware) {
 	r.middlewares = append(r.middlewares, middleware)
 }
 
-func (r *Router) addRoute(method string, path string, handle Handle) {
+func (r *Router) addRoute(method string, path string, handle HandleFunc) {
 	r.routes = append(r.routes, Route{method: method, path: path, handle: handle, isMount: false})
 }
 
-func (r *Router) addStaticRoute(method string, path string, handle Handle) {
+func (r *Router) addStaticRoute(method string, path string, handle HandleFunc) {
 	r.routes = append(r.routes, Route{method: method, path: path, handle: handle, isMount: true})
 }
 
@@ -89,7 +89,7 @@ func (r *Router) selectRoute(method string, path string) Route {
 	return Route{method: method, path: path, handle: HandleNotFound, isMount: false}
 }
 
-func (r *Router) stackHandles(handle Handle) Handle {
+func (r *Router) stackHandles(handle HandleFunc) HandleFunc {
 	var stackedHandle = handle
 	for idx := range r.middlewares {
 		stackedHandle = r.middlewares[idx](stackedHandle)

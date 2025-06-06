@@ -27,7 +27,7 @@ func Health(http.Request) (http.Response, error) {
 	}, nil
 }
 
-func SecurityMiddleware(next http.Handle) http.Handle {
+func SecurityMiddleware(next http.HandleFunc) http.HandleFunc {
 	return func(req http.Request) (resp http.Response, err error) {
 		// check Authorization header or do something else before/after further processing
 		return next(req)

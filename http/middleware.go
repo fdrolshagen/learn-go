@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-type Middleware func(next Handle) Handle
+type Middleware func(next HandleFunc) HandleFunc
 
-func PanicRecoveryMiddleware(next Handle) Handle {
+func PanicRecoveryMiddleware(next HandleFunc) HandleFunc {
 	return func(req Request) (resp Response, err error) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -27,7 +27,7 @@ func PanicRecoveryMiddleware(next Handle) Handle {
 	}
 }
 
-func RewriteAfterRoutingMiddleware(next Handle, prefix string) Handle {
+func RewriteAfterRoutingMiddleware(next HandleFunc, prefix string) HandleFunc {
 	return func(req Request) (resp Response, err error) {
 		p := req.Url
 
@@ -44,7 +44,7 @@ func RewriteAfterRoutingMiddleware(next Handle, prefix string) Handle {
 	}
 }
 
-func DefaultAccessLogMiddleware(next Handle) Handle {
+func DefaultAccessLogMiddleware(next HandleFunc) HandleFunc {
 	return func(req Request) (resp Response, err error) {
 		start := time.Now()
 		url := req.Url

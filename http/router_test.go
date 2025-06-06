@@ -117,7 +117,7 @@ func NOPHandler(_ Request) (Response, error) {
 	return Response{}, nil
 }
 
-func NOPMiddleware(next Handle) Handle {
+func NOPMiddleware(next HandleFunc) HandleFunc {
 	return func(req Request) (resp Response, err error) {
 		return next(req)
 
