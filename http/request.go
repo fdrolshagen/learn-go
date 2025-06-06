@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"path"
+	"strconv"
 	"strings"
 )
 
@@ -67,9 +68,40 @@ func parseRequestLine(line []byte, req *Request) error {
 		return fmt.Errorf("malformed http request: request line incomplete")
 	}
 	req.Method = string(parts[0])
-	req.Protocol = string(parts[2])
+
+	if err := parseProtocol(string(parts[2]), req); err != nil {
+		return fmt.Errorf("malformed http request: protocol invalid: %w", err)
+	}
 
 	return parseURL(string(parts[1]), req)
+}
+
+func parseProtocol(protocol string, req *Request) error {
+	if !strings.HasPrefix(protocol, "HTTP/") {
+		return fmt.Errorf("protocol invalid: %s", protocol)
+	}
+
+	version := strings.TrimPrefix(protocol, "HTTP/")
+	parts := strings.Split(version, ".")
+	if len(parts) != 2 {
+		return fmt.Errorf("protocol incomplete: %s", protocol)
+	}
+
+	major, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return fmt.Errorf("invalid protocol major version: %s", parts[0])
+	}
+
+	minor, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return fmt.Errorf("invalid protocol minor version: %s", parts[0])
+	}
+
+	req.Protocol = protocol
+	req.ProtocolMajor = major
+	req.ProtocolMinor = minor
+
+	return nil
 }
 
 func parseURL(rawUrl string, req *Request) error {
@@ -104,7 +136,7 @@ func parseHeaders(headerLines [][]byte, req *Request) error {
 	}
 
 	req.Headers = make(map[string]string)
-	for _, h := range headerLines[1:] {
+	for _, h := range headerLines {
 		header := strings.SplitN(string(h), ":", 2)
 		if len(header) != 2 {
 			return fmt.Errorf("malformed http request: header incomplete")
