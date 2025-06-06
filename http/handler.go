@@ -56,10 +56,12 @@ func readFile(filePath string) (string, error) {
 func GuessContentType(url string) string {
 	switch ext := path.Ext(url); ext {
 	case ".html":
-		return "text/html"
+		return TEXT_HTML
 	case ".json":
-		return "application/json"
+		return APPLICATION_JSON
+	case ".pdf":
+		return APPLICATION_PDF
 	default:
-		return "text/plain"
+		return TEXT_PLAIN
 	}
 }

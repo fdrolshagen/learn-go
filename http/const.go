@@ -26,3 +26,15 @@ const (
 	HEAD    = "HEAD"
 	OPTIONS = "OPTIONS"
 )
+
+const (
+	APPLICATION_JSON = "application/json"
+	TEXT_HTML        = "text/html"
+	TEXT_PLAIN       = "text/plain"
+	TEXT_XML         = "text/xml"
+	IMAGE_PNG        = "image/png"
+	IMAGE_JPEG       = "image/jpeg"
+	IMAGE_GIF        = "image/gif"
+	IMAGE_SVG        = "image/svg+xml"
+	APPLICATION_PDF  = "application/pdf"
+)
