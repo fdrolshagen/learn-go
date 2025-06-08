@@ -27,8 +27,8 @@ func TestParseRequest(t *testing.T) {
 	assert.Equal(t, 1, req.ProtocolMinor)
 
 	assert.Len(t, req.Headers, 2)
-	assert.Equal(t, "example.com", req.Headers["Host"])
-	assert.Equal(t, "TestClient/1.0", req.Headers["User-Agent"])
+	assert.Equal(t, "example.com", req.Headers.Get("Host"))
+	assert.Equal(t, "TestClient/1.0", req.Headers.Get("User-Agent"))
 
 	assert.Equal(t, []byte("BODY"), req.Body)
 }

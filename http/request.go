@@ -16,7 +16,7 @@ type Request struct {
 	Protocol      string
 	ProtocolMajor int
 	ProtocolMinor int
-	Headers       map[string]string
+	Headers       Headers
 	Body          []byte
 }
 
@@ -135,7 +135,7 @@ func parseHeaders(headerLines [][]byte, req *Request) error {
 		return nil
 	}
 
-	req.Headers = make(map[string]string)
+	req.Headers = make(Headers)
 	for _, h := range headerLines {
 		header := strings.SplitN(string(h), ":", 2)
 		if len(header) != 2 {
@@ -147,7 +147,7 @@ func parseHeaders(headerLines [][]byte, req *Request) error {
 			return fmt.Errorf("malformed http request: empty header key")
 		}
 
-		req.Headers[key] = strings.TrimSpace(header[1])
+		req.Headers.Add(key, strings.TrimSpace(header[1]))
 	}
 
 	return nil
