@@ -10,6 +10,24 @@ type HandleFunc func(Request) (Response, error)
 // when an HTTP 404 should be returned.
 func HandleNotFound(_ Request) (Response, error) {
 	return Response{
-		StatusCode: 404,
+		StatusCode:  404,
+		Body:        StatusCodes[404],
+		ContentType: "text/plain",
+	}, nil
+}
+
+func HandleRequestTooLarge(_ Request) (Response, error) {
+	return Response{
+		StatusCode:  413,
+		Body:        StatusCodes[413],
+		ContentType: "text/plain",
+	}, nil
+}
+
+func HandleInternalServerError(_ Request) (Response, error) {
+	return Response{
+		StatusCode:  500,
+		Body:        StatusCodes[500],
+		ContentType: "text/plain",
 	}, nil
 }

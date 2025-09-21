@@ -1,22 +1,29 @@
 package http
 
 import (
-	"io"
+	"fmt"
 	"log"
 	"net"
+	"runtime/debug"
 	"strconv"
+	"strings"
+)
+
+const (
+	MaxClientRequestSize = 1024 * 1024
 )
 
 type Server struct {
-	Port   int
-	Router *Router
-	mr     *MetricRegistry
+	Port        int
+	Router      *Router
+	mr          *MetricRegistry
+	middlewares []Middleware
 }
 
 func CreateServer(port int, router *Router) *Server {
 	mr := CreateMetricRegistry()
-	route := mr.getActuatorRoute()
-	router.prependRoute(route)
+	ar := mr.getActuatorRoute()
+	router.prependRoute(ar)
 
 	return &Server{
 		Port:   port,
@@ -47,28 +54,17 @@ func (s *Server) StartServer() {
 func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
-	buf := make([]byte, 1024)
-	_, err := conn.Read(buf)
+	buf := make([]byte, MaxClientRequestSize)
+	err := read(conn, buf)
 	if err != nil {
-		if err == io.EOF {
-			return
-		}
-		log.Printf("Cannot read Request %s", err)
+		log.Printf("error reading request: %s", err)
 		return
 	}
 
 	// just a prototype for now
 	go s.mr.Increment("total_request_count")
 
-	request, err := ParseRequest(buf)
-	if err != nil {
-		log.Printf("Cannot parse Request %s", err)
-		return
-	}
-
-	route := s.Router.selectRoute(request.Method, request.Url)
-	resp := s.handle(route, request)
-
+	resp := s.process(buf)
 	raw, err := resp.RawResponse()
 	if err != nil {
 		return
@@ -78,10 +74,30 @@ func (s *Server) handleConnection(conn net.Conn) {
 	_, err = conn.Write([]byte(raw))
 }
 
+func read(conn net.Conn, buf []byte) error {
+	_, err := conn.Read(buf)
+	if err != nil {
+		return fmt.Errorf("%s", err.Error())
+	}
+
+	return nil
+}
+
+func (s *Server) process(buf []byte) Response {
+	request, err := ParseRequest(buf)
+	if err != nil {
+		log.Printf("Cannot parse Request %s", err)
+		resp, _ := HandleInternalServerError(request)
+		return resp
+	}
+
+	route := s.Router.selectRoute(request.Method, request.Url)
+	rewrite(&request, route.path)
+	return recoverHandle(s.handle, route, request)
+}
+
 func (s *Server) handle(route Route, req Request) Response {
-	handle := PanicRecoveryMiddleware(route.handle)
-	handle = RewriteAfterRoutingMiddleware(handle, route.path)
-	handle = DefaultAccessLogMiddleware(handle)
+	handle := DefaultAccessLogMiddleware(route.handle)
 
 	response, err := handle(req)
 	if err != nil {
@@ -93,4 +109,29 @@ func (s *Server) handle(route Route, req Request) Response {
 	}
 
 	return response
+}
+
+func rewrite(req *Request, prefix string) {
+	p := req.Url
+
+	if prefix != "/" {
+		p = strings.TrimPrefix(p, prefix)
+	}
+
+	if p == "" {
+		p = "/"
+	}
+
+	req.Url = p
+}
+
+func recoverHandle(f func(Route, Request) Response, route Route, req Request) (resp Response) {
+	defer func(req Request) {
+		if r := recover(); r != nil {
+			log.Printf("PANIC: %v\n%s", r, debug.Stack())
+			resp, _ = HandleInternalServerError(req)
+		}
+	}(req)
+
+	return f(route, req)
 }
