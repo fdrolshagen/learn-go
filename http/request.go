@@ -8,16 +8,32 @@ import (
 	"strings"
 )
 
-// Request holds all information about a valid HTTP-Request
+// Request represents an HTTP request.
+// It contains the parsed information from a raw HTTP request.
 type Request struct {
-	Url           string
-	QueryParams   map[string]string
-	Method        string
+	// Url specifies the request path without query parameters.
+	// Example: for URL "/path?foo=bar", Url would contain "/path"
+	Url string
+
+	// QueryParams holds URL query params as key/value pairs
+	// Example: for URL "/path?foo=bar", QueryParams would contain {"foo": "bar"}
+	QueryParams QueryParams
+
+	// Method holds the HTTP method like GET, POST, PUT, DELETE, ...
+	Method string
+
+	// Protocol specifies the HTTP protocol version used in the request.
+	// Example: "HTTP/1.1"
 	Protocol      string
 	ProtocolMajor int
 	ProtocolMinor int
-	Headers       Headers
-	Body          []byte
+
+	Headers Headers
+
+	Body Body
+
+	ContentType   string
+	ContentLength int64
 }
 
 // ParseRequest parses a []byte and tries to construct a valid Request.
@@ -41,6 +57,8 @@ func ParseRequest(b []byte) (req Request, err error) {
 	if err := parseHeaders(headerLines[1:], &req); err != nil {
 		return req, err
 	}
+
+	extractContentInfo(&req)
 
 	return req, nil
 }
@@ -116,13 +134,13 @@ func parseURL(rawUrl string, req *Request) error {
 
 	if len(urlSplitted) == 2 {
 		req.Url = urlSplitted[0]
-		req.QueryParams = map[string]string{}
+		req.QueryParams = make(QueryParams)
 		params := strings.Split(urlSplitted[1], "&")
 
 		for _, param := range params {
 			kv := strings.Split(param, "=")
 			if len(kv) == 2 {
-				req.QueryParams[kv[0]] = kv[1]
+				req.QueryParams.Add(kv[0], kv[1])
 			}
 		}
 	}
@@ -151,4 +169,13 @@ func parseHeaders(headerLines [][]byte, req *Request) error {
 	}
 
 	return nil
+}
+
+func extractContentInfo(req *Request) {
+	contentType := req.Headers.Get("Content-Type")
+	if contentType != "" {
+		req.ContentType = contentType
+	}
+
+	req.ContentLength, _ = strconv.ParseInt(req.Headers.Get("Content-Length"), 10, 64)
 }

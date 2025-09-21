@@ -30,7 +30,7 @@ func TestParseRequest(t *testing.T) {
 	assert.Equal(t, "example.com", req.Headers.Get("Host"))
 	assert.Equal(t, "TestClient/1.0", req.Headers.Get("User-Agent"))
 
-	assert.Equal(t, []byte("BODY"), req.Body)
+	assert.Equal(t, []byte("BODY"), req.Body.Bytes())
 }
 
 func TestParseRequest_NoHeaderBodySep(t *testing.T) {
