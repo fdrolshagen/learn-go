@@ -11,6 +11,7 @@ type Response struct {
 	StatusCode  int
 	Body        string
 	ContentType string
+	Headers     Headers
 }
 
 const (
@@ -50,6 +51,12 @@ func (r *Response) RawResponse() (string, error) {
 	if r.ContentType != "" {
 		if err := writeHeader(&b, "Content-Type", r.ContentType); err != nil {
 			return "", fmt.Errorf("failed to write content type: %w", err)
+		}
+	}
+
+	for k, v := range r.Headers {
+		if err := writeHeader(&b, k, strings.Join(v, ",")); err != nil {
+			return "", fmt.Errorf("failed to write header %s: %w", k, err)
 		}
 	}
 
